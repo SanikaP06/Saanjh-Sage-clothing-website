@@ -140,6 +140,7 @@ export default function Navbar() {
                 className="block mx-3 sm:mx-4 mt-2 sm:mt-4 bg-button hover:bg-accent text-white text-center py-2 sm:py-3 rounded-full font-medium transition-all duration-300 hover:shadow-lg text-sm sm:text-base"
                 onClick={() => setIsMenuOpen(false)}
               >
+                
                 Login
               </Link>
             )}
