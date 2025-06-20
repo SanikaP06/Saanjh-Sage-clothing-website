@@ -149,7 +149,8 @@ export default function Home() {
 
             <div className="animate-fade-in-right order-1 lg:order-2">
               <div className="relative max-w-md mx-auto lg:max-w-none">
-                <div className="aspect-square rounded-card overflow-hidden shadow-2xl transform rotate-2 hover:rotate-0 transition-transform duration-500">
+                <div className="h-48 xs:h-56 sm:h-72 md:h-80 lg:h-[22rem] rounded-card overflow-hidden shadow-2xl transform rotate-2 hover:rotate-0 transition-transform duration-500">
+
                   <div className="w-full h-full bg-gradient-to-br from-accent to-button opacity-20"></div>
                   <div className="absolute inset-0 flex items-center justify-center">
                     <div className="text-center text-white">
