@@ -6,6 +6,8 @@ import type { Product } from "@/data/products"
 
 export interface CartItem extends Product {
   quantity: number
+  selectedSize?: string
+  cartId: string // Unique identifier for cart items (id + size)
 }
 
 interface CartState {
@@ -14,26 +16,38 @@ interface CartState {
 }
 
 type CartAction =
-  | { type: "ADD_ITEM"; payload: Product }
-  | { type: "REMOVE_ITEM"; payload: string }
-  | { type: "UPDATE_QUANTITY"; payload: { id: string; quantity: number } }
+  | { type: "ADD_ITEM"; payload: Product & { selectedSize?: string } }
+  | { type: "REMOVE_ITEM"; payload: string } // cartId
+  | { type: "UPDATE_QUANTITY"; payload: { cartId: string; quantity: number } }
   | { type: "CLEAR_CART" }
   | { type: "LOAD_CART"; payload: CartItem[] }
 
 const cartReducer = (state: CartState, action: CartAction): CartState => {
   switch (action.type) {
     case "ADD_ITEM": {
-      const existingItem = state.items.find((item) => item.id === action.payload.id)
+      // Create unique cartId based on product id and selected size
+      const cartId = action.payload.selectedSize 
+        ? `${action.payload.id}-${action.payload.selectedSize}` 
+        : action.payload.id
+      
+      const existingItem = state.items.find((item) => item.cartId === cartId)
+      
       if (existingItem) {
         const updatedItems = state.items.map((item) =>
-          item.id === action.payload.id ? { ...item, quantity: item.quantity + 1 } : item,
+          item.cartId === cartId ? { ...item, quantity: item.quantity + 1 } : item,
         )
         return {
           items: updatedItems,
           total: updatedItems.reduce((sum, item) => sum + item.price * item.quantity, 0),
         }
       } else {
-        const newItems = [...state.items, { ...action.payload, quantity: 1 }]
+        const newCartItem: CartItem = {
+          ...action.payload,
+          quantity: 1,
+          cartId,
+          selectedSize: action.payload.selectedSize
+        }
+        const newItems = [...state.items, newCartItem]
         return {
           items: newItems,
           total: newItems.reduce((sum, item) => sum + item.price * item.quantity, 0),
@@ -41,7 +55,7 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
       }
     }
     case "REMOVE_ITEM": {
-      const newItems = state.items.filter((item) => item.id !== action.payload)
+      const newItems = state.items.filter((item) => item.cartId !== action.payload)
       return {
         items: newItems,
         total: newItems.reduce((sum, item) => sum + item.price * item.quantity, 0),
@@ -49,7 +63,7 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
     }
     case "UPDATE_QUANTITY": {
       const updatedItems = state.items
-        .map((item) => (item.id === action.payload.id ? { ...item, quantity: action.payload.quantity } : item))
+        .map((item) => (item.cartId === action.payload.cartId ? { ...item, quantity: action.payload.quantity } : item))
         .filter((item) => item.quantity > 0)
       return {
         items: updatedItems,
@@ -70,9 +84,9 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
 
 const CartContext = createContext<{
   state: CartState
-  addItem: (product: Product) => void
-  removeItem: (id: string) => void
-  updateQuantity: (id: string, quantity: number) => void
+  addItem: (product: Product & { selectedSize?: string }) => void
+  removeItem: (cartId: string) => void
+  updateQuantity: (cartId: string, quantity: number) => void
   clearCart: () => void
 } | null>(null)
 
@@ -82,7 +96,17 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const savedCart = localStorage.getItem("cart")
     if (savedCart) {
-      dispatch({ type: "LOAD_CART", payload: JSON.parse(savedCart) })
+      try {
+        const parsedCart = JSON.parse(savedCart)
+        // Ensure backward compatibility - add cartId if missing
+        const cartWithIds = parsedCart.map((item: any) => ({
+          ...item,
+          cartId: item.cartId || (item.selectedSize ? `${item.id}-${item.selectedSize}` : item.id)
+        }))
+        dispatch({ type: "LOAD_CART", payload: cartWithIds })
+      } catch (error) {
+        console.error("Error loading cart from localStorage:", error)
+      }
     }
   }, [])
 
@@ -90,16 +114,16 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem("cart", JSON.stringify(state.items))
   }, [state.items])
 
-  const addItem = (product: Product) => {
+  const addItem = (product: Product & { selectedSize?: string }) => {
     dispatch({ type: "ADD_ITEM", payload: product })
   }
 
-  const removeItem = (id: string) => {
-    dispatch({ type: "REMOVE_ITEM", payload: id })
+  const removeItem = (cartId: string) => {
+    dispatch({ type: "REMOVE_ITEM", payload: cartId })
   }
 
-  const updateQuantity = (id: string, quantity: number) => {
-    dispatch({ type: "UPDATE_QUANTITY", payload: { id, quantity } })
+  const updateQuantity = (cartId: string, quantity: number) => {
+    dispatch({ type: "UPDATE_QUANTITY", payload: { cartId, quantity } })
   }
 
   const clearCart = () => {
