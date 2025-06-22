@@ -56,7 +56,7 @@ export default function CartPage() {
           {/* Cart Items */}
           <div className="lg:col-span-2 space-y-4 sm:space-y-6">
             {state.items.map((item) => (
-              <div key={item.id} className="bg-white rounded-card shadow-md p-4 sm:p-6">
+              <div key={item.cartId} className="bg-white rounded-card shadow-md p-4 sm:p-6">
                 <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
                   {/* Product Image */}
                   <div className="relative h-32 w-full sm:h-32 sm:w-32 flex-shrink-0 mx-auto sm:mx-0">
@@ -75,14 +75,25 @@ export default function CartPage() {
                       <div>
                         <h3 className="text-lg sm:text-xl font-semibold text-textDark mb-1 sm:mb-2">{item.name}</h3>
                         <p className="text-gray-600 mb-2 text-sm sm:text-base line-clamp-2">{item.description}</p>
+                        
+                        {/* Size Display */}
+                        {item.selectedSize && (
+                          <div className="mb-2">
+                            <span className="inline-block bg-gray-100 text-gray-700 px-2 py-1 rounded-md text-sm font-medium">
+                              Size: {item.selectedSize}
+                            </span>
+                          </div>
+                        )}
+                        
                         <p className="text-base sm:text-lg font-bold text-accent">{formatPrice(item.price)}</p>
                       </div>
+                      
 
                       {/* Quantity Controls and Remove Button */}
                       <div className="flex items-center justify-between">
                         <div className="flex items-center border border-gray-300 rounded-lg">
                           <button
-                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                            onClick={() => updateQuantity(item.cartId, item.quantity - 1)}
                             className="p-2 hover:bg-gray-100 transition-colors"
                             disabled={item.quantity <= 1}
                           >
@@ -90,7 +101,7 @@ export default function CartPage() {
                           </button>
                           <span className="px-3 sm:px-4 py-2 font-medium text-sm sm:text-base">{item.quantity}</span>
                           <button
-                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                            onClick={() => updateQuantity(item.cartId, item.quantity + 1)}
                             className="p-2 hover:bg-gray-100 transition-colors"
                           >
                             <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
@@ -98,7 +109,7 @@ export default function CartPage() {
                         </div>
 
                         <button
-                          onClick={() => removeItem(item.id)}
+                          onClick={() => removeItem(item.cartId)}
                           className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                         >
                           <Trash2 className="h-4 w-4 sm:h-5 sm:w-5" />
