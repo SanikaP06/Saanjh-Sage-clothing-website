@@ -6,8 +6,10 @@ import Image from "next/image"
 import Link from "next/link"
 import type { Product } from "@/data/products"
 import { useCart } from "@/context/CartContext"
+import { useWishlist } from "@/context/WishlistContext"
 import { toast } from "react-toastify"
 import { ShoppingCart, Heart } from "lucide-react"
+import { useRouter } from "next/navigation"
 
 interface ProductCardProps {
   product: Product
@@ -17,13 +19,31 @@ interface ProductCardProps {
 
 export default function ProductCard({ product, showAddToCart = true, index = 0 }: ProductCardProps) {
   const { addItem } = useCart()
+  const { addItem: addToWishlist, removeItem: removeFromWishlist, isInWishlist } = useWishlist()
+  const router = useRouter()
   const [imageLoaded, setImageLoaded] = useState(false)
-  const [isLiked, setIsLiked] = useState(false)
+  
+  // Check if item is in wishlist
+  const isLiked = isInWishlist(product.id)
 
+  // Modified: Navigate to product page instead of directly adding to cart
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault()
-    addItem(product)
-    toast.success(`${product.name} added to cart!`)
+    e.stopPropagation()
+    router.push(`/products/${product.id}`)
+  }
+
+  const handleWishlistToggle = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    
+    if (isLiked) {
+      removeFromWishlist(product.id)
+      toast.success("Removed from wishlist")
+    } else {
+      addToWishlist(product)
+      toast.success("Added to wishlist")
+    }
   }
 
   const formatPrice = (price: number) => {
@@ -48,8 +68,6 @@ export default function ProductCard({ product, showAddToCart = true, index = 0 }
         {/* Responsive image container */}
         <div className="relative h-[28rem] xs:h-[32rem] sm:h-64 md:h-72 lg:h-64 xl:h-72 overflow-hidden bg-gray-100">
 
-
-
           {/* Placeholder */}
           <div
             className={`absolute inset-0 transition-opacity duration-300 ${imageLoaded ? "opacity-0" : "opacity-100"}`}
@@ -71,25 +89,18 @@ export default function ProductCard({ product, showAddToCart = true, index = 0 }
           src={product.image || "/placeholder.svg"}
           alt={product.name}
           fill
-  /* keep object‑cover so it looks like the mock‑up, just taller now */
           className={`w-full h-full object-cover transition-all duration-500 group-hover:scale-105 ${imageLoaded ? "opacity-100" : "opacity-0"}`}
           onLoad={() => setImageLoaded(true)}
           onError={() => setImageLoaded(true)}
           sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
           />
 
-
-
-
           {/* Overlay on hover */}
           <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-300"></div>
 
           {/* Heart icon */}
           <button
-            onClick={(e) => {
-              e.preventDefault()
-              setIsLiked(!isLiked)
-            }}
+            onClick={handleWishlistToggle}
             className="absolute top-2 right-2 sm:top-3 sm:right-3 p-1.5 sm:p-2 bg-white bg-opacity-80 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-opacity-100 hover:scale-110"
           >
             <Heart
@@ -123,7 +134,7 @@ export default function ProductCard({ product, showAddToCart = true, index = 0 }
             className="w-full bg-button hover:bg-accent text-white py-2.5 sm:py-3 px-4 rounded-lg transition-all duration-300 font-medium text-xs sm:text-sm hover:shadow-lg transform hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
           >
             <ShoppingCart className="w-3 h-3 sm:w-4 sm:h-4" />
-            Add to Cart
+            Select Options
           </button>
         </div>
       )}
