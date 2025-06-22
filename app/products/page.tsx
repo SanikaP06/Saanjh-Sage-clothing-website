@@ -10,6 +10,7 @@ export default function ProductsPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [isVisible, setIsVisible] = useState(false)
 
+  // Remove the defensive checks and trust that products exists
   const categories = ["All", ...Array.from(new Set(products.map((p) => p.category)))]
 
   const filteredProducts = products.filter((product) => {

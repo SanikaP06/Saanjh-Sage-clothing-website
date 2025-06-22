@@ -3,6 +3,7 @@ import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
 import { CartProvider } from "@/context/CartContext"
+import { WishlistProvider } from "@/context/WishlistContext"
 import Navbar from "@/components/Navbar"
 import { ToastContainer } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
@@ -27,7 +28,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.variable} font-sans bg-background min-h-screen`}>
+        <WishlistProvider>
         <CartProvider>
+          
           <Navbar />
           <main>{children}</main>
           <ToastContainer
@@ -48,7 +51,9 @@ export default function RootLayout({
               zIndex: 9999,
             }}
           />
+          
         </CartProvider>
+        </WishlistProvider>
       </body>
     </html>
   )
